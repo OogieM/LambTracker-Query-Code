@@ -1,0 +1,13 @@
+select sheep_id, 
+(SELECT tag_number FROM id_info_table WHERE official_id = "1" AND id_info_table.sheep_id = sheep_table.sheep_id AND  (tag_date_off IS NULL or tag_date_off = '')) AS fedtag, 
+(SELECT tag_number FROM id_info_table WHERE tag_type = "4" AND id_info_table.sheep_id = sheep_table.sheep_id AND  (tag_date_off IS NULL or tag_date_off = '')) AS farmtag,
+ (SELECT tag_number FROM id_info_table WHERE tag_type = "2" AND id_info_table.sheep_id = sheep_table.sheep_id AND (tag_date_off IS NULL or tag_date_off = '') and ( id_info_table.official_id is NULL or id_info_table.official_id = 0 )) AS eidtag,
+flock_prefix_table.flock_name, sheep_name, remove_date, remove_reason_table.remove_reason,
+contacts_table.contact_first_name as owner_first_name,
+contacts_table.contact_last_name as owner_last_name
+from sheep_table 
+inner join flock_prefix_table on sheep_table.flock_prefix = flock_prefix_table.flock_prefixid
+left join remove_reason_table on sheep_table.remove_reason = remove_reason_table.remove_reasonid
+left join contacts_table on sheep_table.id_ownerid = contacts_table.id_contactsid
+where remove_date > "2015-%"
+order by remove_reason_table.remove_reason, remove_date, sheep_name asc
