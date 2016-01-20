@@ -1,0 +1,16 @@
+SELECT sheep_table.sheep_id, 
+(SELECT tag_number FROM id_info_table WHERE official_id = "1" AND id_info_table.sheep_id = sheep_table.sheep_id AND  (tag_date_off IS NULL or tag_date_off = '')) AS fedtag, 
+(SELECT tag_number FROM id_info_table WHERE tag_type = "4" AND id_info_table.sheep_id = sheep_table.sheep_id AND  (tag_date_off IS NULL or tag_date_off = '')) AS farmtag,
+ (SELECT tag_number FROM id_info_table WHERE tag_type = "2" AND id_info_table.sheep_id = sheep_table.sheep_id AND (tag_date_off IS NULL or tag_date_off = '') and ( id_info_table.official_id is NULL or id_info_table.official_id = 0 )) AS eidtag,
+flock_prefix_table.flock_name, 
+ sheep_table.sheep_name, codon171_table.codon171_alleles,  sheep_table.birth_date, sheep_sex_table.sex_abbrev, birth_type_table.birth_type, location_table.location_name
+FROM sheep_table 
+inner join codon171_table on sheep_table.codon171 = codon171_table.id_codon171id 
+inner join flock_prefix_table on sheep_table.flock_prefix = flock_prefix_table.flock_prefixid
+left join birth_type_table on sheep_table.birth_type = birth_type_table.id_birthtypeid 
+left join sheep_sex_table on sheep_table.sex = sheep_sex_table.sex_sheepid 
+left join location_table on sheep_table.id_locationid  = location_table.id_locationid
+WHERE (sheep_table.remove_date IS NULL or sheep_table.remove_date is '')
+and sheep_table.birth_date > "2015%"
+and sheep_table.sex = 2
+order by sheep_sex_table.sex_abbrev, sheep_table.birth_date asc
