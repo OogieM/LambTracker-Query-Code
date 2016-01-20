@@ -1,0 +1,45 @@
+SELECT sheep_evaluation_table.id_evaluationid, sheep_table.sheep_id, 
+(SELECT tag_number FROM id_info_table WHERE official_id = "1" AND id_info_table.sheep_id = sheep_table.sheep_id AND  (tag_date_off IS NULL or tag_date_off = '')) AS fedtag, 
+ (SELECT tag_number FROM id_info_table WHERE tag_type = "4" AND id_info_table.sheep_id = sheep_table.sheep_id AND  (tag_date_off IS NULL or tag_date_off = '')) AS farmtag,
+ (SELECT tag_number FROM id_info_table WHERE tag_type = "2" AND id_info_table.sheep_id = sheep_table.sheep_id AND (tag_date_off IS NULL or tag_date_off = '') and ( id_info_table.official_id is NULL or id_info_table.official_id = 0 )) AS eidtag,
+ sheep_table.sheep_name, codon171_table.codon171_alleles, sheep_ebv_table.usa_maternal_index,  sheep_ebv_table.self_replacing_carcass_index, cluster_table.cluster_name,
+sheep_evaluation_table.trait_score01 as teeth_alignment,
+sheep_evaluation_table.trait_score02 as missing_teeth ,
+sheep_evaluation_table.trait_score03 as white_on_nose,
+sheep_evaluation_table.trait_score04 as head,
+sheep_evaluation_table.trait_score05 as body,
+sheep_evaluation_table.trait_score06 as legs,
+sheep_evaluation_table.trait_score07 as udder_lumps,
+sheep_evaluation_table.trait_score08 as white_britch,
+sheep_evaluation_table.trait_score09 as fleece_quality,
+sheep_evaluation_table.trait_score10 as tail_length ,
+sheep_evaluation_table.trait_score11 as weight ,
+(sheep_table.birth_type +
+sheep_table.codon171 +
+sheep_evaluation_table.trait_score01 +
+sheep_evaluation_table.trait_score02 +
+sheep_evaluation_table.trait_score03 +
+sheep_evaluation_table.trait_score04 +
+sheep_evaluation_table.trait_score05 +
+sheep_evaluation_table.trait_score06 +
+sheep_evaluation_table.trait_score07 +
+sheep_evaluation_table.trait_score08 +
+sheep_evaluation_table.trait_score09 +
+sheep_evaluation_table.trait_score10 +
+(sheep_evaluation_table.trait_score12 / 10 )) as overall_score, sheep_evaluation_table.sheep_rank, sheep_evaluation_table.number_sheep_ranked,
+sheep_table.birth_date, sheep_sex_table.sex_abbrev, birth_type_table.birth_type,
+sire_table.sheep_name as sire_name, dam_table.sheep_name as dam_name 
+FROM sheep_table 
+ join codon171_table on sheep_table.codon171 = codon171_table.id_codon171id 
+ join sheep_cluster_table on sheep_table.sheep_id = sheep_cluster_table.sheep_id
+ join cluster_table on cluster_table.id_clusternameid = sheep_cluster_table.which_cluster
+ join birth_type_table on sheep_table.birth_type = birth_type_table.id_birthtypeid 
+ join sheep_sex_table on sheep_table.sex = sheep_sex_table.sex_sheepid 
+left outer  join sheep_table as sire_table on sheep_table.sire_id = sire_table.sheep_id
+left outer  join sheep_table as dam_table on sheep_table.dam_id = dam_table.sheep_id
+left outer join sheep_ebv_table on sheep_table.sheep_id = sheep_ebv_table.sheep_id and (sheep_ebv_table.ebv_date like "2015-10%")
+left outer join sheep_evaluation_table on sheep_table.sheep_id = sheep_evaluation_table.sheep_id  AND (eval_date = "2015-09-01" )
+WHERE (sheep_table.remove_date IS NULL or sheep_table.remove_date is '' ) and sheep_evaluation_table.eval_date = "2015-09-01" 
+and sheep_table.birth_date < "2015%" 
+and (sheep_table.alert01 not like "%Sell%" and  sheep_table.alert01 not like "%Butcher%" )
+order by cluster_table.cluster_name, sheep_rank asc, self_replacing_carcass_index desc, usa_maternal_index desc
